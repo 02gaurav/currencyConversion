@@ -18,8 +18,8 @@ constructor(
     private val service: CurrencyExchangeService,
     private val appDb: AppDb
 ) {
-    val timeOut = 1 * 60 * 1000 // 5 minutes
-    val exchangeRatesMap: MutableMap<String, Double> = mutableMapOf() // base is USD
+    private val timeOut = 1 * 60 * 1000 // 5 minutes
+    private val exchangeRatesMap: MutableMap<String, Double> = mutableMapOf() // base is USD
 
     // 1 USD = 83 INR
     // 1 INR  = 1/83 USD
@@ -30,10 +30,8 @@ constructor(
         countrySelected: String,
         amount: Double = 1.0
     ): ExchangeRates? {
-
         // Now base is countrySelected
         // calculate according to base USD rates in exchangeRatesMap
-
         return withContext(Dispatchers.Default) {
             try {
                 val exchangeRatesDb = appDb.currencyExchangeDao().getAllExchangeRates()
@@ -50,6 +48,27 @@ constructor(
             } catch (e: Exception) {
                 e.printStackTrace()
                 null
+            }
+        }
+    }
+
+    suspend fun fetchCountryListData(): List<String> {
+        val data = arrayListOf<String>()
+        return withContext(Dispatchers.IO) {
+            try {
+                val countryDataDb = appDb.currencyExchangeDao().fetchCountryList()
+                countryDataDb.ifEmpty {
+                    // fetch from Remote
+                    val exchangeRate = fetchExchangeRateRemote()
+                    appDb.currencyExchangeDao().insertExchangeRateList(exchangeRate)
+                    exchangeRate.forEach {
+                        data.add(it.currencySymbol)
+                    }
+                    data
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                listOf("USD")
             }
         }
     }
@@ -102,30 +121,6 @@ constructor(
                 e.printStackTrace()
                 listOf()
             }
-        }
-    }
-
-    suspend fun fetchCountryListData(): List<String> {
-        val data = arrayListOf<String>()
-        return withContext(Dispatchers.IO) {
-            try {
-                val countryDataDb = appDb.currencyExchangeDao().fetchCountryList()
-                countryDataDb.ifEmpty {
-                    // fetch from Remote
-                    val exchangeRate = fetchExchangeRateRemote()
-                    appDb.currencyExchangeDao().insertExchangeRateList(exchangeRate)
-                    exchangeRate.forEach {
-                        data.add(it.currencySymbol)
-                    }
-                    data
-                }
-
-            } catch (e: Exception) {
-                e.printStackTrace()
-                println("here ======")
-                listOf("USD")
-            }
-
         }
     }
 

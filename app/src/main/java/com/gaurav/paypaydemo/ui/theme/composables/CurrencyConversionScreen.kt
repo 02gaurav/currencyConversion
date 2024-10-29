@@ -37,7 +37,6 @@ fun CurrencyConversionScreen(
     onAmountChanged: (String) -> Unit
 ) {
     Log.d("Composition", "CurrencyConversionScreen")
-
     val viewmodel = hiltViewModel<CurrencyExchangeViewModel>()
     val state = viewmodel.exchangeState.collectAsStateWithLifecycle()
 
