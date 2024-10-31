@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.gaurav.paypaydemo.datalayer.CountryCurrencyData
@@ -51,7 +52,8 @@ fun CountryCurrencyScreen(countryData: List<CountryCurrencyData>, listType: List
 @Composable
 fun HorizontalList(countryData: List<CountryCurrencyData>) {
     LazyRow(
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = Modifier.testTag("currencyList")
     ) {
         items(countryData) { country ->
             CountryWithCurrency(country, CurrencyViewOrientation.Horizontal)
@@ -63,7 +65,8 @@ fun HorizontalList(countryData: List<CountryCurrencyData>) {
 @Composable
 fun VerticalList(countryData: List<CountryCurrencyData>) {
     LazyColumn(
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = Modifier.testTag("currencyList")
     ) {
         items(countryData) { country ->
             CountryWithCurrency(country,CurrencyViewOrientation.Horizontal)
@@ -75,7 +78,8 @@ fun VerticalList(countryData: List<CountryCurrencyData>) {
 fun HorizontalGridList(countryData: List<CountryCurrencyData>) {
     LazyHorizontalGrid(rows = GridCells.Fixed(3),
         verticalArrangement = Arrangement.spacedBy(8.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = Modifier.testTag("currencyList")
         ) {
         items(countryData) { country ->
             CountryWithCurrency(country, CurrencyViewOrientation.Horizontal)
@@ -88,7 +92,8 @@ fun HorizontalGridList(countryData: List<CountryCurrencyData>) {
 fun VerticalGridList(countryData: List<CountryCurrencyData>) {
     LazyVerticalGrid(columns = GridCells.Fixed(3),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = Modifier.testTag("currencyList")) {
         items(countryData) { country ->
             CountryWithCurrency(country, CurrencyViewOrientation.Vertical)
         }

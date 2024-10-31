@@ -1,5 +1,6 @@
 package com.gaurav.paypaydemo.dep
 
+import android.app.Application
 import android.content.Context
 import com.gaurav.paypaydemo.MyApplication
 import com.gaurav.paypaydemo.datalayer.remote.CurrencyExchangeService
@@ -33,8 +34,7 @@ class NetModule {
 
     @Provides
     @Singleton
-    fun provideContext(): Context {
-        return MyApplication::class.java.newInstance()
+    fun provideContext(app:Application): Context {
+        return app.applicationContext
     }
-
 }

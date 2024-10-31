@@ -7,6 +7,7 @@ sealed class CurrencyExchangeState {
     data class Success(val data: CurrencyExchangeData) : CurrencyExchangeState()
     data class Error(val error: ERROR) : CurrencyExchangeState()
     object Loading : CurrencyExchangeState()
+    object EmptyState : CurrencyExchangeState()
 }
 
 enum class ERROR(val msg: String) {

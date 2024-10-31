@@ -1,11 +1,13 @@
 package com.gaurav.paypaydemo.datalayer.util
 
-import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 
-class RateLimiter(val timeout: Long) {
+class RateLimiter
+@Inject
+constructor() {
 
     @Synchronized
-    fun shouldFetch(lastFetched: Long?): Boolean {
+    fun shouldFetch(timeout: Long, lastFetched: Long?): Boolean {
         val now = now()
         if (lastFetched == null) {
             return true

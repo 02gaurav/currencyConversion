@@ -5,6 +5,7 @@ import com.gaurav.paypaydemo.datalayer.local.AppDb
 import com.gaurav.paypaydemo.datalayer.local.CurrencyExchangeRate
 import com.gaurav.paypaydemo.datalayer.remote.CurrencyExchangeService
 import com.gaurav.paypaydemo.datalayer.remote.ExchangeRates
+import com.gaurav.paypaydemo.datalayer.util.RateLimiter
 import com.gaurav.paypaydemo.ui.theme.uistate.CurrencyExchangeData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -16,9 +17,10 @@ class CurrencyExchangeRepo
 @Inject
 constructor(
     private val service: CurrencyExchangeService,
-    private val appDb: AppDb
+    private val appDb: AppDb,
+    private val rateLimiter: RateLimiter
 ) {
-    private val timeOut = 1 * 60 * 1000 // 5 minutes
+    private val timeOut = 1L * 60 * 1000 // 5 minutes
     private val exchangeRatesMap: MutableMap<String, Double> = mutableMapOf() // base is USD
 
     // 1 USD = 83 INR
@@ -35,12 +37,16 @@ constructor(
         return withContext(Dispatchers.Default) {
             try {
                 val exchangeRatesDb = appDb.currencyExchangeDao().getAllExchangeRates()
-                if (shouldFetch(exchangeRatesDb.firstOrNull()?.lastFetchTime)) {
+                if (rateLimiter.shouldFetch(timeOut,exchangeRatesDb.firstOrNull()?.lastFetchTime)) {
                     // fetch from server
                     val exchangeRateRemote = fetchExchangeRateRemote()
-                    // insert data in DB
-                    insertDataInDB(exchangeRateRemote)
-                    getExchangeRatesForCurrency(countrySelected, amount, exchangeRateRemote)
+                    if(exchangeRateRemote.isNotEmpty()) {
+                        // insert data in DB
+                        insertDataInDB(exchangeRateRemote)
+                        getExchangeRatesForCurrency(countrySelected, amount, exchangeRateRemote)
+                    } else {
+                        getExchangeRatesForCurrency(countrySelected, amount, exchangeRatesDb)
+                    }
                 } else {
                     // fetch from DB
                     getExchangeRatesForCurrency(countrySelected, amount, exchangeRatesDb)
@@ -103,7 +109,6 @@ constructor(
     private suspend fun fetchExchangeRateRemote(): List<CurrencyExchangeRate> {
         return withContext(Dispatchers.IO) {
             try {
-                println("Making API call ..... ")
                 val response = service.getExchangeRatesLive()
                 val exchangeRate = arrayListOf<CurrencyExchangeRate>()
                 response.body()?.rates?.map { it ->
@@ -122,18 +127,5 @@ constructor(
                 listOf()
             }
         }
-    }
-
-    private fun shouldFetch(lastFetched: Long?): Boolean {
-        println("=====> lastFetched $lastFetched")
-        val now = System.currentTimeMillis()
-        if (lastFetched == null) {
-            return true
-        }
-        val diff = now - lastFetched
-        if (diff > timeOut) {
-            return true
-        }
-        return false
     }
 }
